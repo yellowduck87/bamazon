@@ -60,11 +60,23 @@ function start() {
             if (selectQuant < res[0].stock) {
                 var newStock = res[0].stock -= selectQuant;
                 purchaseTotal += (res[0].price * selectQuant)
+                var id = res[0].item_id;
+                var name = res[0].product_name;
+                var dept = res[0].department_name;
+                var price = res[0].price;
+                var stock = selectQuant
                 console.log("total:", purchaseTotal)
                 console.log("You have added", res[0].product_name, "to your cart");
-                // connection.query('INSERT INTO shoping_cart (item_id, product_name, department_name, price, stock) VALUES =?', (res[0].item_id, res[0].product_name, res[0].department_name, res[0].price, selectQuant), function (err, res) {
+                // connection.query('INSERT INTO shoping_cart', [{
+                //     item_id: id,
+                //     product_name: name,
+                //     department_name: dept,
+                //     price: price,
+                //     stock: stock,
+
+                // }], function (err, res) {
                 //     if (err) throw err;
-                //     console.log(res)
+                //     console.log("shopping cart", res)
 
                 // });
                 connection.query('UPDATE products SET stock = ? WHERE item_id = ?', [newStock, selectItem], function (err, res) {
@@ -97,7 +109,7 @@ function start() {
                             //     })
                             // }
                             console.log("Your total cost for the goods in your shoppng cart comes to:")
-                            console.log("$", purchaseTotal)
+                            console.log("$"+ purchaseTotal)
                             console.log("Thanks for stopping by!")
                             connection.end();
                         }
