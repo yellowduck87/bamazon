@@ -16,10 +16,11 @@ connection.connect(function (err) {
 })
 
 var purchaseTotal = 0;
+var deptStats = "";
 
 
 function createTable() {
-   var table = new Table({
+    var table = new Table({
         head: ['ID', 'Name', 'Department', 'Price', 'Quantity'],
     });
     connection.query("SELECT * FROM products", function (err, res) {
@@ -49,36 +50,57 @@ function start() {
         var selectItem = answer.addToCart;
         connection.query("SELECT * FROM products WHERE item_id =?", [selectItem], function (err, res) {
             if (err) throw err;
-            if(answer.quantity || answer.addToCart === "Q"){
-                console.log("Thanks for shopping at Bamazon!")
-                connection.end()
-            }
-            else if (selectQuant < res[0].stock) {
+            // if (answer.quantity || answer.addToCart === "Q") {
+            //     console.log("Thanks for shopping at Bamazon!")
+            //     connection.end()
+            // } else
+             if (selectQuant < res[0].stock) {
                 var newStock = res[0].stock -= selectQuant;
+                deptStats = res[0].department_name
+                console.log("Current department sales:", deptStats)
                 purchaseTotal += (res[0].price * selectQuant)
+
                 console.log("You have purcahsed", selectQuant, res[0].product_name);
-                console.log("So Far, you have spent $"+ purchaseTotal, "in total.")
+                console.log("So Far, you have spent $" + purchaseTotal, "in total.")
 
-                connection.query('UPDATE products SET stock = ? WHERE item_id = ?', [newStock, selectItem], function (err, res) {
+                connection.query('UPDATE products SET stock = ? WHERE item_id = ?', [newStock, selectItem],
+                    function (err, res) {
                         if (err) throw err;
-                    }),
+                    });
 
-                    inquirer.prompt({
-                        type: 'confirm',
-                        name: "continue",
-                        message: "Would you like to add another item to your cart?"
-                    }).then(function (answer) {
-                        if (answer.continue === true) {
-                            createTable();
-                            // console.log(table.toString())
-                        } else {
+                connection.query("SELECT * FROM departments", function (err, res) {
+                    if (err) throw err;
 
-                            console.log("Your total cost for the goods in your shoppng cart comes to:")
-                            console.log("$" + purchaseTotal)
-                            console.log("Thanks for stopping by!")
-                            connection.end();
+                    var profit1 = res[0].profit += purchaseTotal;
+                    var sales1 = res[0].sales += purchaseTotal;
+                    connection.query("UPDATE departments SET ? WHERE ?", [{
+                            sales: sales1,
+                        },
+                        {
+                            dept_name: deptStats
                         }
+                    ], function (err, res) {
+                        if (err) throw (err)
                     })
+                })
+
+
+
+                inquirer.prompt({
+                    type: 'confirm',
+                    name: "continue",
+                    message: "Would you like to add another item to your cart?"
+                }).then(function (answer) {
+                    if (answer.continue === true) {
+                        createTable();
+                    } else {
+
+                        console.log("Your total cost for the goods in your shoppng cart comes to:")
+                        console.log("$" + purchaseTotal)
+                        console.log("Thanks for stopping by!")
+                        connection.end();
+                    }
+                })
             } else {
                 console.log("There is not enough stock on hand to add to your cart.");
                 inquirer.prompt({

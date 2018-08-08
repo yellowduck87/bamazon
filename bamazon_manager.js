@@ -1,5 +1,3 @@
-// If a manager selects Add to Inventory, your app should display a prompt that will let the manager "add more" of any item currently in the store.
-// If a manager selects Add New Product, it should allow the manager to add a completely new product to the store.
 
 var mysql = require("mysql");
 var inquirer = require("inquirer");
@@ -26,7 +24,7 @@ function start() {
         type: "list",
         name: "list",
         message: "Choose an option:",
-        choices: ["View Products For Sale", "View Low Inventory", "Add to Inventory", "Add New Product"]
+        choices: ["View Products For Sale", "View Low Inventory", "Add to Inventory", "Add New Product", "Quit\n"]
     }).then(function (answer) {
         if (answer.list === "View Products For Sale") {
             createTable();
@@ -36,6 +34,9 @@ function start() {
             addInventory();
         } else if (answer.list === "Add New Product") {
             addProduct();
+        } else {
+            console.log("Thanks for using Bamazon Manager App.")
+            connection.end();
         }
     })
 }
@@ -76,6 +77,7 @@ function viewInventory() {
 
 }
 
+var newStock = 0;
 
 function addInventory() {
     inquirer.prompt([{
@@ -85,14 +87,19 @@ function addInventory() {
         name: "stock",
         message: "How much stock would you like to add?"
     }]).then(function (answer) {
-        connection.query("UPDATE products SET ? WHERE ?", [{
-            stock = answer.stock,
+        connection.query("SELECT stock FROM products WHERE ?", [{
+            item_id: answer.item_id
+        }, function (err, res) {
+            if (err) throw err;
+            newStock = res[0].stock
+        }])
+        connection.query("UPDATE products SET ? WHERE  ?", [{
+            stock: newStock += parseInt(answer.stock)
         }, {
-            item_id = answer.item_id
+            item_id: answer.item_id
         }], function (err, res) {
             if (err) throw err;
-            console.log("You have updated the stock quanitity of item number", answer.item_id);
-            console.log(res);
+            console.log("\n You have updated the stock quanitity of item number", answer.item_id, "\n");
             start();
 
         })
@@ -103,7 +110,7 @@ function addInventory() {
 
 function addProduct() {
     inquirer.prompt([{
-        name: "item_id",
+        name: "item_name",
         message: "What item would you like to add?"
     }, {
         name: "department",
@@ -115,10 +122,15 @@ function addProduct() {
         name: "stock",
         message: "How much inventory do you have?"
     }]).then(function (answer) {
-        connection.query("INSERT INTO products (item_id, department_name, price, stock VALUE = ?", [(answer.item_id, answer.department, answer.price, answer.stock)], function (err, res) {
+        console.log(answer.item_name)
+        connection.query("INSERT INTO products SET ?", [{
+            product_name: answer.item_name,
+            department_name: answer.department,
+            price: answer.price,
+            stock: answer.stock
+        }], function (err, res) {
             if (err) throw err;
-            console.log("Item successfuly added to inventory");
-            console.log(res)
+            console.log("\n Item successfuly added to inventory \n");
             start();
         })
     })

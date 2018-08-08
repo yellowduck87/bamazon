@@ -28,8 +28,12 @@ VALUES
 
 
 CREATE TABLE departments (
-    department_id INTEGER NOT NULL AUTO_INCREMENT,
-    department_name VARCHAR(50) NOT NULL,
-    over_head_cost INTEGER(10)
-    PRIMARY KEY (department_id)
+    dept_id INTEGER NOT NULL AUTO_INCREMENT,
+    dept_name VARCHAR(50) NOT NULL,
+    overhead INTEGER(10),
+    sales INTEGER(10) default 0,
+    PRIMARY KEY(dept_id)
 );
+
+INSERT INTO departments (dept_name, overhead)
+VALUEs ("Clothing", 1000), ("Hardware", 10500), ("Electronics", 2000), ("Pets", 500), ("Sports", 3000);
