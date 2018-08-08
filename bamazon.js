@@ -13,18 +13,13 @@ var connection = mysql.createConnection({
 
 connection.connect(function (err) {
     console.log("Connected as id:", connection.threadId);
-    start();
 })
-var table = new Table({
-    head: ['ID', 'Name', 'Department', 'Price', 'Quantity'],
-});
-
-
 
 var purchaseTotal = 0;
 
+
 function createTable() {
-    var table = new Table({
+   var table = new Table({
         head: ['ID', 'Name', 'Department', 'Price', 'Quantity'],
     });
     connection.query("SELECT * FROM products", function (err, res) {
@@ -35,31 +30,34 @@ function createTable() {
             );
         }
         console.log(table.toString());
-
+        console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+        start();
     })
 }
-
+createTable()
 
 function start() {
-    createTable();
 
     inquirer.prompt([{
         name: "addToCart",
         message: "Type the ID number of the item you would like to add to the cart"
     }, {
         name: "quantity",
-        message: "How many would you like to purchase?"
+        message: "How many would you like to purchase? (Type Q to quit)"
     }, ]).then(function (answer) {
         var selectQuant = answer.quantity;
         var selectItem = answer.addToCart;
         connection.query("SELECT * FROM products WHERE item_id =?", [selectItem], function (err, res) {
             if (err) throw err;
-            if (selectQuant < res[0].stock) {
+            if(answer.quantity || answer.addToCart === "Q"){
+                console.log("Thanks for shopping at Bamazon!")
+                connection.end()
+            }
+            else if (selectQuant < res[0].stock) {
                 var newStock = res[0].stock -= selectQuant;
                 purchaseTotal += (res[0].price * selectQuant)
-        
-                console.log("total:", purchaseTotal)
-                console.log("You have added", res[0].product_name, "to your cart");
+                console.log("You have purcahsed", selectQuant, res[0].product_name);
+                console.log("So Far, you have spent $"+ purchaseTotal, "in total.")
 
                 connection.query('UPDATE products SET stock = ? WHERE item_id = ?', [newStock, selectItem], function (err, res) {
                         if (err) throw err;
@@ -71,9 +69,8 @@ function start() {
                         message: "Would you like to add another item to your cart?"
                     }).then(function (answer) {
                         if (answer.continue === true) {
-                            start();
-                            table
-                            console.log(table.toString())
+                            createTable();
+                            // console.log(table.toString())
                         } else {
 
                             console.log("Your total cost for the goods in your shoppng cart comes to:")
@@ -90,7 +87,7 @@ function start() {
                     message: "Would you like to add a different item to your cart?"
                 }).then(function (answer) {
                     if (answer.continue === true) {
-                        start();
+                        createTable();
                     } else {
 
                         console.log("Thanks for stopping by!")
@@ -101,36 +98,3 @@ function start() {
         })
     })
 }
-
-// var cartTable = new Table({
-//     head: ['ID', 'Name', 'Department', 'Price', 'Quantity'],
-
-// })
-
-// connection.query('INSERT INTO shoping_cart', [{
-//     item_id: id,
-//     product_name: name,
-//     department_name: dept,
-//     price: price,
-//     stock: stock,
-
-// }], function (err, res) {
-//     if (err) throw err;
-//     console.log("shopping cart", res)
-
-// });
-// if (parseInt(purchaseTotal) != 0) {
-//     connection.query('SELECT * FROM shopping_cart', function (err, res) {
-//         if (err) throw err;
-//         for (var i = 0; i < res.length; i++) {
-//             cartTable.push(
-//                 [res[i].item_id, res[i].product_name, res[i].department_name, res[i].price, res[i].stock]
-//             )
-//         }
-//         console.log(cartTable.toString())
-//         Console.log("Your total cost for the above goods comes to:")
-//         console.log("$", purchaseTotal)
-//         console.log("Thanks for stopping by!")
-//         // connection.end();
-//     })
-// }
