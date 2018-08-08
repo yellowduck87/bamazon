@@ -44,20 +44,16 @@ function start() {
         message: "Type the ID number of the item you would like to add to the cart"
     }, {
         name: "quantity",
-        message: "How many would you like to purchase? (Type Q to quit)"
+        message: "How many would you like to purchase?"
     }, ]).then(function (answer) {
         var selectQuant = answer.quantity;
         var selectItem = answer.addToCart;
         connection.query("SELECT * FROM products WHERE item_id =?", [selectItem], function (err, res) {
             if (err) throw err;
-            // if (answer.quantity || answer.addToCart === "Q") {
-            //     console.log("Thanks for shopping at Bamazon!")
-            //     connection.end()
-            // } else
+           
              if (selectQuant < res[0].stock) {
                 var newStock = res[0].stock -= selectQuant;
-                deptStats = res[0].department_name
-                console.log("Current department sales:", deptStats)
+                deptStats = res[0].department_name;
                 purchaseTotal += (res[0].price * selectQuant)
 
                 console.log("You have purcahsed", selectQuant, res[0].product_name);
